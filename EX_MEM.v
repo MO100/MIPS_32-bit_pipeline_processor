@@ -18,6 +18,6 @@ end
 	MemWrite_out <= MemWrite_in;
 	ALU_Result_out <= ALU_Result_in;
 	RT_data_out <= RT_data_in;
-	// ?? = ID_EX_MUX_in
+	// EX_MEM_Rd_out = ID_EX_MUX_in;
 	end  
 endmodule
