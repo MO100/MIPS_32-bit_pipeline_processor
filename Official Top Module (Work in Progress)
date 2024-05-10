@@ -1,0 +1,205 @@
+//WIRE NAMING SYNTAX: "Same name of wire from Block Diagram" + ____ + Wire actual name
+//Example From block diagram: 
+// w3 to our syntax: w3 ---> w3_Opcode
+
+
+module MIPS_32_BITS_SIMULATION();
+  //Global Wires
+  wire clk, reset, w8_enable, w4_enable;
+  
+/*IF STAGE CODE */
+
+  //IF Stage Wires
+    //Data wires
+    wire [31:0] w1_InstructionMemory, w2_InstructionFetch, w12, w34, w39, w40, w105, w102, w7_PC_Counter_out;
+    //Address Wires 
+    wire [4:0] w8_Read_Reg_1, w9_Read_Reg_2, w13_IF_ID_Rs, w14_IF_ID_Rt, w15_IF_ID_Rd;
+    wire [4:0] w5_Rs_Hazard_out, w6_Rt_Hazard_out;
+    wire [5:0] w3_Opcode;
+    //Mux Control Signals
+    wire w104, L16; 
+  //Offsets and Sign extends
+    wire [15:0] w10_sign_extend;  //16 bits
+    wire [25:0] w100_jump_offset; //26 bits
+
+  
+  //DONT FORGET #(MEM_SIZE)!!!!!!!!!!!!
+  InstructionMemory Inst(
+    .data_out(w2_InstructionFetch),
+    .address_in(w1_InstructionMemory),
+    .clk(clk)
+  );
+  //DONT FORGET #(MEM_SIZE)!!!!!!!!!!!!!
+  
+  //Address incrememter for Program Counter
+   Adder_32_Bits ADD (
+        .total_out(w12),
+        .A_in(w1_InstructionMemory),
+        .B_in(32'b0100)
+    );
+    
+    //Program Counter Register (PC)
+    PCReg dut (
+    .PC_out(w1_InstructionMemory),
+    .PC_in(w105),
+    .clk(clk),
+    .rst(reset),
+    .write_in(w8_enable)
+  );
+  
+  //2 to 1 Mux in IF Stage
+   Mux2_1 IF_MUX_2(
+    .A_in(w102),
+    .B_in(w34),
+    .select(w104),
+    .data_out(w105)
+  );
+  //Top left 2 to 1 Mux in IF Stage
+  Mux2_1 ID_MUX_2(
+    .A_in(w12),
+    .B_in(w40),
+    .select(L16),
+    .data_out(w34)
+  );
+  
+  //Calling IF_ID Pipeline Register with Appropriate wires
+   IF_ID ID_ID_PIPELINE_REG(
+    .clk(clk),
+    .enable(w4_enable),
+    .reset_in(reset),
+    .Rs_Hazard_out(w5_Rs_Hazard_out),
+    .Rt_Hazard_out(w6_Rt_Hazard_out),
+    .Read_Reg_1_out(w8_Read_Reg_1),
+    .Read_Reg_2_out(w9_Read_Reg_2),
+    .IF_ID_Rs_out(w13_IF_ID_Rs),
+    .IF_ID_Rt_out(w14_IF_ID_Rt),
+    .IF_ID_Rd_out(w15_IF_ID_Rd),
+    .Op_code_out(w3_Opcode),
+    .PC_Counter_out(w7_PC_Counter_out),
+    .Jump_Offset_out(w100_jump_offset),
+    .sign_extend_input_out(w10_sign_extend),
+    .PC_counter_output_in(w12),
+    .Instruction_memory_in(w2_InstructionFetch)
+  );
+  
+//END OF IF STAGE CODE
+
+/* END OF IF STAGE */
+
+
+
+
+
+
+
+
+
+
+
+
+/*ID STAGE: */
+
+  //ID Stage Wires
+    wire [31:0] 
+    wire [4:0]
+    wire [15:0] 
+    
+  //ID STAGE CODE:
+  
+  //NEED MUX CONTROL MODULE AND HAZARD UNIT
+  
+    Control control (
+        
+    );
+    
+    Sign_Extended signextend (
+        .data_out(),
+        .sign_extend_in()
+    );
+    
+    Shift_Left_Two jumpoffsetshift (
+      .data_out(),
+      .data_in()
+    );
+  
+    Shift_Left_Two signextendshift (
+      .data_out(),
+      .data_in()
+    );
+    
+    
+    
+    
+
+//END OF ID STAGE CODE
+
+/*END OF ID STAGE*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*EX STAGE: */
+
+  //EX Stage Wires
+    //wire [31:0] 
+    //wire [4:0]
+    //wire [15:0] 
+    
+  //EX STAGE CODE:
+     
+  
+
+//END OF DM STAGE CODE
+
+/*END OF DM STAGE*/
+  
+  
+  
+  
+  
+/*DM STAGE: */
+
+  //DM Stage Wires
+    //wire [31:0] 
+    //wire [4:0]
+    //wire [15:0] 
+    
+  //DM STAGE CODE:
+     
+  
+
+//END OF DM STAGE CODE
+
+/*END OF DM STAGE*/
+
+
+
+
+
+/*WB STAGE: */
+
+  //WB Stage Wires
+    //wire [31:0] 
+    //wire [4:0]
+    //wire [15:0] 
+    
+  //WB STAGE CODE:
+     
+  
+
+//END OF WB STAGE CODE
+
+/*END OF WB STAGE*/
+
+endmodule 
+
