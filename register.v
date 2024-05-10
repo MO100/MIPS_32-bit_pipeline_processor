@@ -1,7 +1,7 @@
-module register(clk, rst, reg_write_bit_in, read_reg1_in, read_reg2_in, write_reg_in, write_data_in, rdata1_out, rdata2_out);
+module register(clk, reset_in, reg_write_bit_in, read_reg1_in, read_reg2_in, write_reg_in, write_data_in, rdata1_out, rdata2_out);
 parameter n = 32;
 
-input clk, rst;
+input clk, reset_in;
 input reg_write_bit_in;
 input [4:0] read_reg1_in ,read_reg2_in ,write_reg_in; // 5 bits
 input [n-1:0] write_data_in; // n bits
@@ -16,7 +16,7 @@ integer i;
 
 //writing
 always @(posedge clk) begin
-	if(rst) begin
+	if(reset_in) begin
 		for(i=0; i < n; i = i + 1) begin
 			stack[i] <= 32'h0;
 		end
