@@ -19,7 +19,7 @@ module MIPS_32_BITS_SIMULATION();
     //Mux Control Signals
     wire w104, L16; 
   //Offsets and Sign extends
-    wire [15:0] w10_sign_extend;  //16 bits
+    wire [15:0] w10_sign_extend_in;  //16 bits
     wire [25:0] w100_jump_offset; //26 bits
 
   
@@ -77,7 +77,7 @@ module MIPS_32_BITS_SIMULATION();
     .Op_code_out(w3_Opcode),
     .PC_Counter_out(w7_PC_Counter_out),
     .Jump_Offset_out(w100_jump_offset),
-    .sign_extend_input_out(w10_sign_extend),
+    .sign_extend_input_out(w10_sign_extend_in),
     .PC_counter_output_in(w12),
     .Instruction_memory_in(w2_InstructionFetch)
   );
@@ -100,7 +100,8 @@ module MIPS_32_BITS_SIMULATION();
 /*ID STAGE: */
 
   //ID Stage Wires
-    wire [31:0] 
+    wire w100_comparator_out;
+    wire [31:0] w11_sign_extend_out, w41, w46_read_data_1, w47_read_data_2; 
     wire [4:0]
     wire [15:0] 
     
@@ -113,8 +114,8 @@ module MIPS_32_BITS_SIMULATION();
     );
     
     Sign_Extended signextend (
-        .data_out(),
-        .sign_extend_in()
+        .data_out(w11_sign_extend_out),
+        .sign_extend_in(w10_sign_extend_in)
     );
     
     Shift_Left_Two jumpoffsetshift (
@@ -123,9 +124,24 @@ module MIPS_32_BITS_SIMULATION();
     );
   
     Shift_Left_Two signextendshift (
-      .data_out(),
-      .data_in()
+      .data_out(w41),
+      .data_in(w11_sign_extend_out)
     );
+    
+    Adder_32_Bits IDBITADDER(
+      .total_out(w40), 
+      .A_in(w7_PC_Counter_out), 
+      .B_in(w41)
+      );
+      
+    Comparator comparator(
+    .output_bit(w100_comparator_out), 
+    .A_in(w46_read_data_1), 
+    .B_in(w47_read_data_2)
+    );
+    
+    
+    
     
     
     
