@@ -210,6 +210,67 @@ module MIPS_32_BITS_SIMULATION();
     //wire [15:0] 
     
   //WB STAGE CODE:
+	// EX_MEM inputs
+	wire A1_Reg_Write, A2_Mem_To_Reg, A4_Mem_Read, A5_Mem_Write;
+	wire [31:0] A10_ALU_Reset, A17_RT_32_Input;
+	wire [4:0] A2_ID_EX_MUX;
+	// EX_MEM outputs / MEM_WB inputs
+	wire L5_Reg_Write, L6_Mem_To_Reg, L1_Mem_Read, L2_Mem_Write;
+	wire [4:0] L9_EX_Mem__Forwarding, W98_EX_Mem_Next_Pipeline;
+	wire [31:0] L3_ALU_Reset, L17_RT_32_Input;
+	wire [31:0] L10_Data_Memory_Output;
+	// MEM_WB outputs
+	wire W36_Reg_Write_Output, L11_Mem_To_Reg_Output;
+	wire [31:0] L13_Data_Memory_Mux, L13_Alu_Output_To_Mux;
+	wire [4:0] W37_Mem_WB_Rd_Register_Module, L15_MEM_WB_Forwarding;
+	 
+	
+	
+    EX_MEM EX_MEM_Unit (
+        .EX_MEM_Next_Pipeline_out(W98_EX_Mem_Next_Pipeline),
+        .EX_MEM_Forwarding_out(L9_EX_Mem__Forwarding),
+        .RegWrite_out(L5_Reg_Write),
+        .MemtoReg_out(L6_Mem_To_Reg),
+        .MemRead_out(L1_Mem_Read),
+        .MemWrite_out(L2_Mem_Write),
+        .ALU_Result_out(L3_ALU_Reset),
+        .RT_data_out(L17_RT_32_Input),
+        .RegWrite_in(A1_Reg_Write),
+        .MemtoReg_in(A2_Mem_To_Reg),
+        .MemRead_in(A4_Mem_Read),
+        .MemWrite_in(A5_Mem_Write),
+        .RT_data_in(A17_RT_32_Input),
+        .ALU_Result_in(A10_ALU_Reset),
+        .ID_EX_MUX_in(A2_ID_EX_MUX),
+        .reset_in(reset),
+        .clk(clk)
+    );
+
+    MEM_WB MEM_WB_Unit (
+        .MEM_WB_Rd_out(W37_Mem_WB_Rd_Register_Module),
+        .MEM_WB_Forwarding(L15_MEM_WB_Forwarding),
+        .Reg_Write_out(W36_Reg_Write_Output),
+        .MemtoReg_out(L11_Mem_To_Reg_Output),
+        .data_memory_output_out(L13_Data_Memory_Mux),
+        .ALU_Output_to_MUX_out(L13_Alu_Output_To_Mux),
+        .Reg_Write_in(L5_Reg_Write),
+        .MemtoReg_in(L6_Mem_To_Reg),
+        .clk(clk),
+        .data_memory_output_in(L10_Data_Memory_Output),
+        .ALU_Output_in(L3_ALU_Reset),
+        .EX_MEM_Rd_in(W98_EX_Mem_Next_Pipeline),
+        .reset_in(reset)
+    );
+	
+	Data_Memory Data_Memory_Unit (
+		.data_out(L10_Data_Memory_Output),
+		.address_in(L3_ALU_Reset),
+		.write_data_in(L17_RT_32_Input),
+		.mem_write_in(L2_Mem_Write),
+		.mem_read(L1_Mem_Read),
+		.reset(reset),
+		.clk(clk)
+    );
      
   
 
