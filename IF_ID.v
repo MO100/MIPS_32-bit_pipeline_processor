@@ -15,7 +15,7 @@ module IF_ID(clk, enable, reset_in, Rs_Hazard_out, Rt_Hazard_out, Read_Reg_1_out
     //else begin
     Op_code_out = Instruction_memory_in[31:26];
     
-    Jump_Offset_out <= Instruction_memory_in[16:0]; //not sure if this is correct
+    Jump_Offset_out <= Instruction_memory_in[25:0];
     sign_extend_input_out <= Instruction_memory_in[15:0]; //not sure if this is right
     
     //PC_counter_output_in <= .......PC_Counter_out --> Instruction Memory [??:??]
