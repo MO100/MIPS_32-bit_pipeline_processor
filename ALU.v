@@ -1,7 +1,6 @@
-module ALU(data_out, ZEROFLAG_out, data1_in, data2_in, ALUOp_in);
+module ALU(data_out, data1_in, data2_in, ALUOp_in);
 
   output reg [31:0] data_out;
-  output reg ZEROFLAG_out;
   input [31:0] data1_in, data2_in;
   input [3:0] ALUOp_in;
 
@@ -32,11 +31,6 @@ module ALU(data_out, ZEROFLAG_out, data1_in, data2_in, ALUOp_in);
       12: data_out <= ~(data1_in | data2_in);
       default: data_out <= 32'b0;
     endcase
-
-    if(data_out == 0)
-      ZEROFLAG_out <= 1'b1;
-    else
-      ZEROFLAG_out <= 1'b0;
 
   end
 
