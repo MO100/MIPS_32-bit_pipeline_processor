@@ -1,4 +1,5 @@
-module InstructionMemory #(parameter MEM_SIZE = 256) (data_out, address_in, clk);
+module InstructionMemory (data_out, address_in, clk);
+  parameter MEM_SIZE = 256
   output reg [31:0] data_out;
   input [31:0] address_in;
   input clk;
