@@ -19,10 +19,12 @@ module ALU(data_out, data1_in, data2_in, ALUOp_in);
         data_out <= LO_internal;
       end
       6: data_out <= data1_in - data2_in;
-      7: begin 
-          if(data1_in < data2_in)
-            data_out <= 32'b1;
-        end
+      7: begin
+    	if(data1_in < data2_in)
+        	data_out = 32'b1;
+    	else
+        	data_out = 32'b0;
+	end
       8: begin
         LO_internal = data1_in / data2_in;
         HI_internal = data1_in % data2_in;
