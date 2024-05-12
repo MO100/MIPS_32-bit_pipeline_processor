@@ -1,4 +1,4 @@
-module ID_EX(clk, RegWrite_out, MemtoReg_out, MemRead_out, MemWrite_out, RegDst_out, ALU_Op_out, ALU_Src_out, Read_Data_1_out, Read_Data_2_out, sign_extend_out, ID_EX_Rs_Forward_out, ID_EX_Rt_Forward_out, ID_EX_Rs_MUX_out, ID_EX_Rt_MUX_out, reset_in, RegWrite_in, MemtoReg_in, MemRead_in, MemWrite_in, RegDst_in, ALU_Op_in, ALU_Src_in, Read_Data_1_in, Read_Data_2_in, sign_extend_in, IF_ID_Rs_in, IF_ID_Rt_in, ID_Rd_in);
+module ID_EX(clk, reset_in, RegWrite_out, MemtoReg_out, MemRead_out, MemWrite_out, RegDst_out, ALU_Op_out, ALU_Src_out, Read_Data_1_out, Read_Data_2_out, sign_extend_out, ID_EX_Rs_Forward_out, ID_EX_Rt_Forward_out, ID_EX_Rs_MUX_out, ID_EX_Rt_MUX_out, reset_in, RegWrite_in, MemtoReg_in, MemRead_in, MemWrite_in, RegDst_in, ALU_Op_in, ALU_Src_in, Read_Data_1_in, Read_Data_2_in, sign_extend_in, IF_ID_Rs_in, IF_ID_Rt_in, ID_Rd_in);
 parameter n = 32;
 output reg RegWrite_out, MemtoReg_out, MemRead_out, MemWrite_out, RegDst_out, ALU_Src_out;
 output reg [1:0] ALU_Op_out;
@@ -12,7 +12,25 @@ input [4:0] IF_ID_Rs_in, IF_ID_Rt_in, ID_Rd_in;
 
 
 always @(posedge clk)begin
-  //if(reset_in == 1) begin
+  if(reset_in == 1) begin
+  RegWrite_out <= 1'b0;
+  MemtoReg_out <= 1'b0;
+  MemRead_out <= 1'b0;
+  MemWrite_out <= 1'b0;
+  RegDst_out <= 1'b0;
+  ALU_Op_out <= 1'b0;
+  ALU_Src_out <= 1'b0;
+  
+  Read_Data_1_out <= 32'b0;
+  Read_Data_2_out <= 32'b0;
+  sign_extend_out <= 32'b0;
+  
+  ID_EX_Rs_Forward_out <= 5'b0;
+  ID_EX_Rt_Forward_out <= 5'b0;
+  ID_EX_Rs_MUX_out <= 5'b0;
+  ID_EX_Rt_MUX_out <= 5'b0;
+  end
+  else begin //else will put inputs to outputs
   //14 outputs, 7 (1 bit) control signals, 3 32bit data signals, and 4 5bit outputs that are addresses of our rt and rs being passed to mux and forwarding unit for comparison
   RegWrite_out <= RegWrite_in;
   MemtoReg_out <= MemtoReg_in;
@@ -31,4 +49,5 @@ always @(posedge clk)begin
   ID_EX_Rs_MUX_out <= IF_ID_Rs_in;
   ID_EX_Rt_MUX_out <= IF_ID_Rt_in;
 end 
+end
 endmodule 
