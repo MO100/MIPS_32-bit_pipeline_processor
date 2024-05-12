@@ -61,9 +61,15 @@ module MIPS_32_BITS_SIMULATION();
     .select(L16),
     .data_out(w34)
   );
-  
+  //END OF IF STAGE CODE
+
+/* END OF IF STAGE */
+
+
+/*IF_ID PIPELINE REGISTER*/
+
   //Calling IF_ID Pipeline Register with Appropriate wires
-   IF_ID ID_ID_PIPELINE_REG(
+   IF_ID IFIDREG(
     .clk(clk),
     .enable(w4_enable),
     .reset_in(reset),
@@ -82,9 +88,9 @@ module MIPS_32_BITS_SIMULATION();
     .Instruction_memory_in(w2_InstructionFetch)
   );
   
-//END OF IF STAGE CODE
 
-/* END OF IF STAGE */
+
+/* END OF IF_ID PIPELINE REGISTER*/
 
 
 
@@ -100,29 +106,75 @@ module MIPS_32_BITS_SIMULATION();
 /*ID STAGE: */
 
   //ID Stage Wires
-    wire w100_comparator_out;
+    wire FLUSH, w16_Hazard, w18_branch_Control, w27_Reg_Write_Control, w28_Mem_To_Reg_Out_Control, w30_Mem_Read_Out_Control, w31_Mem_Write_Out_Control, w32_Reg_Dst_out_Control, w34_Alu_OP_Out_Control, w48_ALU_Src_Control, w100_comparator_out;
     wire [31:0] w11_sign_extend_out, w41, w46_read_data_1, w47_read_data_2; 
-    wire [4:0]
-    wire [15:0] 
-    
+    wire [4:0];
+    wire [15:0];
+    wire [27:0] w101_jump_offfset_shift2;
+	wire [1:0] WB_Control_wire, MEM_Control_wire;
+	wire [3:0] EX_Control_wire;
+	
   //ID STAGE CODE:
   
   //NEED MUX CONTROL MODULE AND HAZARD UNIT
   
     Control control (
-        
+        .WB_out(WB_Control_wire),
+        .MEM_out(MEM_Control_wire),
+        .EX_out(EX_Control_wire),
+        .jump_out(w104_jump_control),
+        .branch_out(w18_branch_Control),
+        .op_code_in(w3_Opcode)
     );
     
+	Mux_Control mux_control(
+        .Reg_Write_out(w27_Reg_Write_Control),
+        .Mem_To_Reg_Out(w28_Mem_To_Reg_Out_Control),
+        .Mem_Read_Out(w30_Mem_Read_Out_Control),
+        .Mem_Write_Out(w31_Mem_Write_Out_Control),
+        .Reg_Dst_out(w32_Reg_Dst_out_Control),
+        .Alu_OP_Out(w34_Alu_OP_Out_Control),
+        .Alu_Src_Out(w48_ALU_Src_Control),
+        .WriteBack_In(WB_Control_wire),
+        .Memory_In(MEM_Control_wire),
+        .Execution_In(EX_Control_wire),
+        .Hazard_In(w16_Hazard)
+    );
+	
     Sign_Extended signextend (
         .data_out(w11_sign_extend_out),
         .sign_extend_in(w10_sign_extend_in)
     );
     
     Shift_Left_Two jumpoffsetshift (
-      .data_out(),
-      .data_in()
+      .data_out(w101_jump_offfset_shift2),
+      .data_in(w100_jump_offset)
     );
-  
+   
+    AND_ID and(
+	.output_bit(L16),
+	.A_in(w18_branch_Control),
+	.B_in(w100_comparator_out)
+	);
+	/*
+	Concatenation(
+	
+	);
+	*/
+	register registerID (
+    .clk(clk),
+    .reset_in(reset),
+    .reg_write_bit_in(W36_Reg_Write_Output),
+    .read_reg1_in(w8_Read_Reg_1),
+    .read_reg2_in(w9_Read_Reg_2),
+    .write_reg_in(W37_Mem_WB_Rd_Register_Module),
+    .write_data_in(L12_MUX_LAST_out),
+    .rdata1_out(w46_read_data_1),
+    .rdata2_out(w47_read_data_2)
+  );
+	
+	
+	
     Shift_Left_Two signextendshift (
       .data_out(w41),
       .data_in(w11_sign_extend_out)
@@ -140,24 +192,67 @@ module MIPS_32_BITS_SIMULATION();
     .B_in(w47_read_data_2)
     );
     
-    
-    
-    
-    
-    
-    
-
+	HazardUnit hazard(
+		// Outputs
+		.IFIDWrite_out(w4_enable),
+		.PCWrite_out(w8_enable),
+		.NOP_out(w16_Hazard),
+		.FLUSH_out(FLUSH), //NEED FLUSH!!!!!!!
+		// Inputs
+		
+		.IDEXMemRead_in(A4_Mem_Read), //might mean memtoread signal of our ID_EX pipeline output (A4_Mem_Read)
+		.EXMEMMemRead_in(L1_Mem_Read), //might mean memtoread signal of our EX_MEM pipeline output (L1_Mem_Read)
+		.EXMEMMemToReg_in(L6_Mem_To_Reg), //might mean memtoreg singal of our EXMEM pipeline output (L6_Mem_To_Reg)
+		.IDEXRegt_in(w14_IF_ID_Rt),	
+		.EXMEMRegt_in(L9_EX_Mem__Forwarding),
+		.IFIDRegs_in(w2_InstructionFetch[25:21]),
+		.IFIDRegt_in(w2_InstructionFetch[20:16]),
+		.branch_in(w18_branch_Control),
+		.ComparatorResult_in(w100_comparator_outt),
+		.jmp_in(w104_jump_control)
+	);
 //END OF ID STAGE CODE
 
 /*END OF ID STAGE*/
+    
 
+	/*ID_EX PIPELINE REGISTER*/
+	wire A20_Reg_Dst, w49_ALU_Src;
+	wire [1:0] A6_ALU_Op;
+	wire [31:0] A7_ID_EX_Rs_Forward, A8_ID_EX_Rt_Forward, A11_sign_extend, A12_Read_Data_1, A17_Read_Data_2, A18_ID_EX_Rs_MUX, A19_ID_EX_Rt_MUX;
+	ID_EX IDEXREG ( //NEEDS RESET!!!!!!!!!
+    .clk(clk),
+	//reset_in(reset),
+    .RegWrite_out(A1_Reg_Write),
+    .MemtoReg_out(A2_Mem_To_Reg),
+    .MemRead_out(A4_Mem_Read),
+    .MemWrite_out(A5_Mem_Write),
+    .RegDst_out(A20_Reg_Dst),
+    .ALU_Op_out(A6_ALU_Op),
+    .ALU_Src_out(w49_ALU_Src),
+    .Read_Data_1_out(A12_Read_Data_1),
+    .Read_Data_2_out(A17_Read_Data_2),
+    .sign_extend_out(A11_sign_extend),
+    .ID_EX_Rs_Forward_out(A7_ID_EX_Rs_Forward),
+    .ID_EX_Rt_Forward_out(A8_ID_EX_Rt_Forward),
+    .ID_EX_Rs_MUX_out(A18_ID_EX_Rs_MUX),
+    .ID_EX_Rt_MUX_out(A19_ID_EX_Rt_MUX),
+    .RegWrite_in(w27_Reg_Write_Control),
+    .MemtoReg_in(w28_Mem_To_Reg_Out_Control),
+    .MemRead_in(w30_Mem_Read_Out_Control),
+    .MemWrite_in(w31_Mem_Write_Out_Control),
+    .RegDst_in(w32_Reg_Dst_out_Control),
+    .ALU_Op_in(w34_Alu_OP_Out_Control),
+    .ALU_Src_in(w48_ALU_Src_Control),
+    .Read_Data_1_in(w46_read_data_1),
+    .Read_Data_2_in(w47_read_data_2),
+    .sign_extend_in(w11_sign_extend_out),
+    .IF_ID_Rs_in(w13_IF_ID_Rs),
+    .IF_ID_Rt_in(w14_IF_ID_Rt),
+    .ID_Rd_in(w15_IF_ID_Rd)
+);
 
-
-
-
-
-
-
+	/*END OF ID_EX PIPELINE REGISTER*/
 
 
 
@@ -165,88 +260,139 @@ module MIPS_32_BITS_SIMULATION();
 
 
 /*EX STAGE: */
-
-  //EX Stage Wires
-    //wire [31:0] 
-    //wire [4:0]
-    //wire [15:0] 
     
+  wire [1:0] A13_Forward_A_Signal, A14_Forward_B_Signal;
+  wire [3:0] A9_ALU_Op_in;
+  wire [31:0] A15_ALU_Input_1, A16_Forward_MuxB, w44_ALU_Input_2; 
   //EX STAGE CODE:
-     
+ 
+ //Choosing the appropriate inputs to our ALU
+  Mux3_1_Fwd forwardMuxA (
+    .Mux3_1_Fwd_out(A15_ALU_Input_1),
+    .Register_Data_in(A12_Read_Data_1),
+    .EX_MEM_result_in(L12_MUX_LAST_out),
+    .MEM_WB_result_in(L3_ALU_Result),
+    .Forward_signal_in(A13_Forward_A_Signal)
+);
+Mux3_1_Fwd forwardMuxB (
+    .Mux3_1_Fwd_out(A16_Forward_MuxB),
+    .Register_Data_in(A17_Read_Data_2),
+    .EX_MEM_result_in(L12_MUX_LAST_out),
+    .MEM_WB_result_in(L3_ALU_Result),
+    .Forward_signal_in(A14_Forward_B_Signal)
+);
+	//This mux is meant to choose between the signextend or result from Forwardmux before based on type of instruction.
+  Mux2_1 signextendorforwardmux(
+    .A_in(A16_Forward_MuxB),
+    .B_in(A11_sign_extend),
+    .select(w49_ALU_Src),
+    .data_out(w44_ALU_Input_2)
+  );
+  //This is the mux at the bottom left of our EX stage
+  Mux2_1 RegDsttoMemRegd(
+    .A_in(A18_ID_EX_Rs_MUX),
+    .B_in(A19_ID_EX_Rt_MUX),
+    .select(A20_Reg_Dst),
+    .data_out(A2_ID_EX_MUX)
+  );
+	
+	ALU ALUEX (
+    .data_out(A10_ALU_Result),
+    .data1_in(A15_ALU_Input_1),
+    .data2_in(w44_ALU_Input_2),
+    .ALUOp_in(A9_ALU_Op_in)
+  );
+	
+	//ALU Control
+	ALUControl alucontrol(
+	.ALUOp_in(A6_ALU_Op),
+	.Funct_in(A11_sign_extend),
+	.Data_out(A9_ALU_Op_in)
+	);
+	
+
   
 
-//END OF DM STAGE CODE
-
-/*END OF DM STAGE*/
-  
-  
-  
-  
-  
-/*DM STAGE: */
-
-  //DM Stage Wires
-    //wire [31:0] 
-    //wire [4:0]
-    //wire [15:0] 
-    
-  //DM STAGE CODE:
-     
+  forwarding_unit FU(
+	 .Forward_A_out(A13_Forward_A_Signal), 
+	 .Forward_B_out(A14_Forward_B_Signal), 
+	 .ID_EX_RS_in(A7_ID_EX_Rs_Forward), 
+	 .ID_EX_RT_in(A8_ID_EX_Rt_Forward), 
+	 .EX_MEM_reg_destination_in(L9_EX_Mem__Forwarding), 
+	 .MEM_WB_reg_destination_in(L15_MEM_WB_Forwarding), 
+	 .EX_MEM_WB_in(L5_Reg_Write), 
+	 .MEM_WB_WB_in(W36_Reg_Write_Output)
+	 );
   
 
-//END OF DM STAGE CODE
+//END OF EX STAGE CODE
 
-/*END OF DM STAGE*/
-
-
-
-
-
-/*WB STAGE: */
-
-  //WB Stage Wires
-    //wire [31:0] 
-    //wire [4:0]
-    //wire [15:0] 
-    
-  //WB STAGE CODE:
-	// EX_MEM inputs
+/*END OF EX STAGE*/
+  
+ 
+ 
+ /*EX_MEM PIPELINE REGISTER*/
 	wire A1_Reg_Write, A2_Mem_To_Reg, A4_Mem_Read, A5_Mem_Write;
-	wire [31:0] A10_ALU_Reset, A17_RT_32_Input;
+	wire [31:0] A10_ALU_Result; //A17_RT_32_Input;
 	wire [4:0] A2_ID_EX_MUX;
-	// EX_MEM outputs / MEM_WB inputs
+    // EX_MEM REG outputs / MEM_WB REG inputs
 	wire L5_Reg_Write, L6_Mem_To_Reg, L1_Mem_Read, L2_Mem_Write;
 	wire [4:0] L9_EX_Mem__Forwarding, W98_EX_Mem_Next_Pipeline;
-	wire [31:0] L3_ALU_Reset, L17_RT_32_Input;
+	wire [31:0] L3_ALU_Result, L17_RT_32_Input;
 	wire [31:0] L10_Data_Memory_Output;
-	// MEM_WB outputs
-	wire W36_Reg_Write_Output, L11_Mem_To_Reg_Output;
-	wire [31:0] L13_Data_Memory_Mux, L13_Alu_Output_To_Mux;
-	wire [4:0] W37_Mem_WB_Rd_Register_Module, L15_MEM_WB_Forwarding;
-	 
-	
-	
-    EX_MEM EX_MEM_Unit (
+	    
+		EX_MEM EXMEMREG (
         .EX_MEM_Next_Pipeline_out(W98_EX_Mem_Next_Pipeline),
         .EX_MEM_Forwarding_out(L9_EX_Mem__Forwarding),
         .RegWrite_out(L5_Reg_Write),
         .MemtoReg_out(L6_Mem_To_Reg),
         .MemRead_out(L1_Mem_Read),
         .MemWrite_out(L2_Mem_Write),
-        .ALU_Result_out(L3_ALU_Reset),
+        .ALU_Result_out(L3_ALU_Result),
         .RT_data_out(L17_RT_32_Input),
         .RegWrite_in(A1_Reg_Write),
         .MemtoReg_in(A2_Mem_To_Reg),
         .MemRead_in(A4_Mem_Read),
         .MemWrite_in(A5_Mem_Write),
-        .RT_data_in(A17_RT_32_Input),
-        .ALU_Result_in(A10_ALU_Reset),
+        .RT_data_in(A17_Read_Data_2),
+        .ALU_Result_in(A10_ALU_Result),
         .ID_EX_MUX_in(A2_ID_EX_MUX),
-        .reset_in(reset),
+        .reset_in(reset), //has reset
         .clk(clk)
     );
+	
+/*END OF EX_MEM PIPELINE REGISTER*/
+  
+  
+  
+/*MEM STAGE: */
+  //MEM STAGE CODE:
+  
+   Data_Memory Data_Memory_Unit (
+		.data_out(L10_Data_Memory_Output),
+		.address_in(L3_ALU_Result),
+		.write_data_in(L17_RT_32_Input),
+		.mem_write_in(L2_Mem_Write),
+		.mem_read(L1_Mem_Read),
+		.reset(reset), //make sure ".reset" is correct
+		.clk(clk)
+    );  
+  
 
-    MEM_WB MEM_WB_Unit (
+//END OF MEM STAGE CODE
+
+/*END OF MEM STAGE*/
+
+
+
+/*MEM_WB PIPELINE REGISTER*/
+
+	// MEM_WB outputs
+	wire W36_Reg_Write_Output, L11_Mem_To_Reg_Output;
+	wire [31:0] L12_MUX_LAST_out, L13_Data_Memory_Mux, L13_Alu_Output_To_Mux;
+	wire [4:0] W37_Mem_WB_Rd_Register_Module, L15_MEM_WB_Forwarding;
+    
+      MEM_WB MEMWBREG ( //NEEDS RESET!
         .MEM_WB_Rd_out(W37_Mem_WB_Rd_Register_Module),
         .MEM_WB_Forwarding(L15_MEM_WB_Forwarding),
         .Reg_Write_out(W36_Reg_Write_Output),
@@ -256,23 +402,29 @@ module MIPS_32_BITS_SIMULATION();
         .Reg_Write_in(L5_Reg_Write),
         .MemtoReg_in(L6_Mem_To_Reg),
         .clk(clk),
+		//.reset_in(reset);
         .data_memory_output_in(L10_Data_Memory_Output),
-        .ALU_Output_in(L3_ALU_Reset),
+        .ALU_Output_in(L3_ALU_Result),
         .EX_MEM_Rd_in(W98_EX_Mem_Next_Pipeline),
         .reset_in(reset)
     );
-	
-	Data_Memory Data_Memory_Unit (
-		.data_out(L10_Data_Memory_Output),
-		.address_in(L3_ALU_Reset),
-		.write_data_in(L17_RT_32_Input),
-		.mem_write_in(L2_Mem_Write),
-		.mem_read(L1_Mem_Read),
-		.reset(reset),
-		.clk(clk)
-    );
-     
-  
+    
+    
+    
+
+
+/*END OF MEM_WB PIPELINE REGISTER*/
+
+
+/*WB STAGE: */
+
+//Wires are coming from MEM_WB REG Section
+  Mux2_1 WBMUX(
+	.A_in(L13_Alu_Output_To_Mux),
+	.B_in(L13_Data_Memory_Mux), 
+	.select(L11_Mem_To_Reg_Output),
+	.data_out(L12_MUX_LAST_out)
+  );
 
 //END OF WB STAGE CODE
 
