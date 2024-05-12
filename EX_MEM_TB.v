@@ -10,22 +10,24 @@ module EX_MEM_tb();
   //wire [4:0] ID_EX_MUX_in; //***NEED***
   
   // Instantiate the EX_MEM module
-  EX_MEM dut (
-    .clk(clk),
-    .RegWrite_out(RegWrite_out),
-    .MemtoReg_out(MemtoReg_out),
-    .MemRead_out(MemRead_out),
-    .MemWrite_out(MemWrite_out),
-    .ALU_Result_out(ALU_Result_out),
-    .RT_data_out(RT_data_out),
-    .RegWrite_in(RegWrite_in),
-    .MemtoReg_in(MemtoReg_in),
-    .MemRead_in(MemRead_in),
-    .MemWrite_in(MemWrite_in),
-    .RT_data_in(RT_data_in),
-    .ALU_Result_in(ALU_Result_in)
-    //,.ID_EX_MUX_in(ID_EX_MUX_in) //***NEED***
-  );
+  EX_MEM EXMEMREG (
+        .EX_MEM_Next_Pipeline_out(W98_EX_Mem_Next_Pipeline),
+        .EX_MEM_Forwarding_out(L9_EX_Mem__Forwarding),
+        .RegWrite_out(L5_Reg_Write),
+        .MemtoReg_out(L6_Mem_To_Reg),
+        .MemRead_out(L1_Mem_Read),
+        .MemWrite_out(L2_Mem_Write),
+        .ALU_Result_out(L3_ALU_Result),
+        .RT_data_out(L17_RT_32_Input),
+        .RegWrite_in(A1_Reg_Write),
+        .MemtoReg_in(A2_Mem_To_Reg),
+        .MemRead_in(A4_Mem_Read),
+        .MemWrite_in(A5_Mem_Write),
+        .RT_data_in(A17_Read_Data_2),
+        .ALU_Result_in(A10_ALU_Result),
+        .ID_EX_MUX_in(A2_ID_EX_MUX),
+        .reset_in(reset), //has reset
+        .clk(clk)
 
   // Clock generation
   initial begin
