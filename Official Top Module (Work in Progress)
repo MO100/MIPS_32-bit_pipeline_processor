@@ -220,9 +220,9 @@ module MIPS_32_BITS_SIMULATION();
 	wire A20_Reg_Dst, w49_ALU_Src;
 	wire [1:0] A6_ALU_Op;
 	wire [31:0] A7_ID_EX_Rs_Forward, A8_ID_EX_Rt_Forward, A11_sign_extend, A12_Read_Data_1, A17_Read_Data_2, A18_ID_EX_Rs_MUX, A19_ID_EX_Rt_MUX;
-	ID_EX IDEXREG ( //NEEDS RESET!!!!!!!!!
+	ID_EX IDEXREG (
     .clk(clk),
-	//reset_in(reset),
+	.reset_in(reset),
     .RegWrite_out(A1_Reg_Write),
     .MemtoReg_out(A2_Mem_To_Reg),
     .MemRead_out(A4_Mem_Read),
@@ -402,7 +402,6 @@ Mux3_1_Fwd forwardMuxB (
         .Reg_Write_in(L5_Reg_Write),
         .MemtoReg_in(L6_Mem_To_Reg),
         .clk(clk),
-		//.reset_in(reset);
         .data_memory_output_in(L10_Data_Memory_Output),
         .ALU_Output_in(L3_ALU_Result),
         .EX_MEM_Rd_in(W98_EX_Mem_Next_Pipeline),
