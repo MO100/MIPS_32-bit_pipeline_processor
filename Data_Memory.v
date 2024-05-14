@@ -1,4 +1,4 @@
-module Data_Memory(parameter DATA_MEMORY_FILE = "")(data_out, address_in, write_data_in, mem_write_in, mem_read, reset, clk);
+module Data_Memory #(parameter DATA_MEMORY_FILE = "")(data_out, address_in, write_data_in, mem_write_in, mem_read, reset, clk);
 	parameter n = 32;
 	input mem_write_in, mem_read, reset, clk;
 	input [n-1:0] address_in, write_data_in;
