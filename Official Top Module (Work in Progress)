@@ -108,8 +108,6 @@ module MIPS_32_BITS_SIMULATION();
   //ID Stage Wires
     wire FLUSH, w16_Hazard, w18_branch_Control, w27_Reg_Write_Control, w28_Mem_To_Reg_Out_Control, w30_Mem_Read_Out_Control, w31_Mem_Write_Out_Control, w32_Reg_Dst_out_Control, w34_Alu_OP_Out_Control, w48_ALU_Src_Control, w100_comparator_out;
     wire [31:0] w11_sign_extend_out, w41, w46_read_data_1, w47_read_data_2; 
-    wire [4:0];
-    wire [15:0];
     wire [27:0] w101_jump_offfset_shift2;
 	wire [1:0] WB_Control_wire, MEM_Control_wire;
 	wire [3:0] EX_Control_wire;
@@ -151,16 +149,18 @@ module MIPS_32_BITS_SIMULATION();
       .data_in(w100_jump_offset)
     );
    
-    AND_ID and(
+    AND_ID andid(
 	.output_bit(L16),
 	.A_in(w18_branch_Control),
 	.B_in(w100_comparator_out)
 	);
-	/*
-	Concatenation(
-	
+
+	Shift_Concatinate(
+	.Data_Out(w102), 
+	.Jump_Offset_in(w101_jump_offfset_shift2), 
+	.PC_Counter_Output_in(w7_PC_Counter_out)
 	);
-	*/
+	
 	register registerID (
     .clk(clk),
     .reset_in(reset),
